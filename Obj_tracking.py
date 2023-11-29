@@ -8,21 +8,21 @@ from ultralytics import YOLO
 model = YOLO('yolov8n.pt')
 
 # Open the video file
-#video_path = "C:\\Users\\leesc\\Downloads\\사람동작 영상\\비디오\\video_action_6\\data\\delivery_final_3D\\video\\6-1\\6-1_602-C08.mp4"
-video_path = "./squidegame_exported.mp4"
+video_path = "./1506.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
 track_history = defaultdict(lambda: [])
 
 pTime = 0
-cnt = 0 # count
 person_cnt = 0
 
 # Loop through the video frames
 while cap.isOpened():
     # Read a frame from the video
     success, frame = cap.read()
+    cap_h, cap_w, _ = frame.shape # get resolution
+    print(cap_w, cap_h, _)
 
     if success:
         # Run YOLOv8 tracking on the frame, persisting tracks between frames
@@ -32,7 +32,7 @@ while cap.isOpened():
         boxes = results[0].boxes.xywh.cpu()
         try:
             track_ids = results[0].boxes.id.int().cpu().tolist()
-            cls_names = results[0].names.values() # get class name
+            #cls_names = results[0].names.values() # get class name
             #print('lsc print', results[0].boxes)
         except AttributeError as err:
             print(err)
@@ -41,12 +41,16 @@ while cap.isOpened():
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
-        person_cnt = len(boxes)
+        #print('lsc print :', results[0].boxes)
+        cnt_track_ids = set()
 
         # Plot the tracks
-        for box, track_id, cls_name in zip(boxes, track_ids, cls_names):
+        for box, track_id in zip(boxes, track_ids):
+            cnt_track_ids.add(track_id)
+            person_cnt = len(cnt_track_ids)
             x, y, w, h = box
             print(float(x), float(y), float(w), float(h))
+
             track = track_history[track_id]
             track.append((float(x), float(y)))  # x, y center point
             if len(track) > 30:  # retain 90 tracks for 90 frames
@@ -63,6 +67,7 @@ while cap.isOpened():
         pTime = cTime
         cv2.putText(annotated_frame, f'FPS/COP: {int(fps)}/{person_cnt}', (40, 50), cv2.FONT_HERSHEY_COMPLEX,
                     1, (255, 0, 0), 3)
+        cv2.line(annotated_frame, (int(cap_w/2), 0), (int(cap_w/2), 1920), (255,0,0), 3)
 
         # Display the annotated frame
         cv2.imshow("YOLOv8 Tracking", annotated_frame)
