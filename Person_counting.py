@@ -78,7 +78,7 @@ while True:
     cv2.putText(frame, first_out_str,(510, 30), font, 1, (255,255,255), 1)
     #print('IN: ', len(first_in), 'OUT: ', len(first_out))
     
-    # İsterseniz bölgeleri ekranda gösterebilrsiniz.
+    # 원하는 경우 화면에 지역을 표시
     #cv2.polylines(frame,[region1],True,(255,0,0),2)
     #cv2.polylines(frame,[region2],True,(255,0,255),2)
     
